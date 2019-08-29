@@ -21,7 +21,7 @@ ct = ColumnTransformer(
 X = ct.fit_transform(X)
 
 # Avoid dummy variables trap
-X = np.delete(X, [0, 3], axis=1)
+X = np.delete(X, [0, 3], axis = 1)
 
 # Splitting the dataset into the Training set and Test set
 from sklearn.model_selection import train_test_split
@@ -66,3 +66,24 @@ y_pred = (y_pred > 0.5)
 # Making the Confusion Matrix
 from sklearn.metrics import confusion_matrix
 cm = confusion_matrix(y_test, y_pred)
+
+
+# Example of single new observation
+"""
+Predict if the customer with the following information will leave the bank:
+    Geography: France
+    Credit Score: 600
+    Gender: Male
+    Age: 40 years old
+    Tenure: 3 years
+    Balance: $60000
+    Number of Products: 2
+    Does this customer have a credit card ? Yes
+    Is this customer an Active Member: Yes
+    Estimated Salary: $50000
+"""
+x = np.array([[600, 'France', 'Male', 40, 3, 6000, 2, 1, 1, 50000]])
+x = ct.transform(x)
+x = np.delete(x, [0, 3], axis = 1)
+x = standardScaler.transform(x)
+y_predict = classifier.predict(x)
