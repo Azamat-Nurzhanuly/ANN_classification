@@ -38,22 +38,25 @@ X_test = standardScaler.transform(X_test)
 import keras
 from keras.models import Sequential
 from keras.layers import Dense
+from keras.layers import Dropout
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import cross_val_score
 
 def build_classifier():
     classifier = Sequential()
     classifier.add(Dense(output_dim = 6, init = 'uniform', activation = 'relu', input_dim = 11))
+    classifier.add(Dropout(p = 0.1))
     classifier.add(Dense(output_dim = 6, init = 'uniform', activation = 'relu'))
+    classifier.add(Dropout(p = 0.1))
     classifier.add(Dense(output_dim = 1, init = 'uniform', activation = 'sigmoid'))
     classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
     return classifier
 
 # Init ANN
-classifier = KerasClassifier(build_fn = build_classifier, batch_size = 10, nb_epoch = 100)
+classifier = KerasClassifier(build_fn = build_classifier, batch_size = 10, epochs = 100)
 
 # Cross validation
-accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = 10)
+accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = 10, n_jobs = 4)
 mean = accuracies.mean()
 variance = accuracies.std()
 
