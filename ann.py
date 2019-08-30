@@ -40,9 +40,9 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import Dropout
 from keras.wrappers.scikit_learn import KerasClassifier
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import GridSearchCV
 
-def build_classifier():
+def build_classifier(optimizer):
     classifier = Sequential()
     classifier.add(Dense(output_dim = 6, init = 'uniform', activation = 'relu', input_dim = 11))
     # Adding layer for dropout regularization
@@ -50,43 +50,30 @@ def build_classifier():
     classifier.add(Dense(output_dim = 6, init = 'uniform', activation = 'relu'))
     classifier.add(Dropout(p = 0.1))
     classifier.add(Dense(output_dim = 1, init = 'uniform', activation = 'sigmoid'))
-    classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
+    classifier.compile(optimizer = optimizer, loss = 'binary_crossentropy', metrics = ['accuracy'])
     return classifier
 
 # Init ANN
-classifier = KerasClassifier(build_fn = build_classifier, batch_size = 10, epochs = 100)
-
-# Cross validation
-accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = 10, n_jobs = 4)
-mean = accuracies.mean()
-variance = accuracies.std()
+classifier = KerasClassifier(build_fn = build_classifier)
+parameters = {
+            'batch_size': [25, 32],
+            'epochs': [100, 300],
+            'optimizer': ['adam', 'rmsprop']
+        }
+grid_search = GridSearchCV(estimator = classifier,
+                           param_grid = parameters,
+                           scoring = 'accuracy',
+                           cv = 10)
+grid_search = grid_search.fit(X_train, y_train)
+best_parameters = grid_search.best_params_
+best_accuracy = grid_search.best_score_
+print(best_accuracy)
 
 ##### Prediction and Evaluation #####
 
 # Making prediction
-y_pred = classifier.predict(X_test)
-y_pred = (y_pred > 0.5)
+y_pred = grid_search.predict(X_test)
 
 # Making the Confusion Matrix
 from sklearn.metrics import confusion_matrix
 cm = confusion_matrix(y_test, y_pred)
-
-# Example of single new observation
-"""
-Predict if the customer with the following information will leave the bank:
-    Geography: France
-    Credit Score: 600
-    Gender: Male
-    Age: 40 years old
-    Tenure: 3 years
-    Balance: $60000
-    Number of Products: 2
-    Does this customer have a credit card ? Yes
-    Is this customer an Active Member: Yes
-    Estimated Salary: $50000
-"""
-x = np.array([[600, 'France', 'Male', 40, 3, 6000, 2, 1, 1, 50000]])
-x = ct.transform(x)
-x = np.delete(x, [0, 3], axis = 1)
-x = standardScaler.transform(x)
-y_predict = classifier.predict(x)
