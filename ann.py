@@ -45,6 +45,7 @@ from sklearn.model_selection import cross_val_score
 def build_classifier():
     classifier = Sequential()
     classifier.add(Dense(output_dim = 6, init = 'uniform', activation = 'relu', input_dim = 11))
+    # Adding layer for dropout regularization
     classifier.add(Dropout(p = 0.1))
     classifier.add(Dense(output_dim = 6, init = 'uniform', activation = 'relu'))
     classifier.add(Dropout(p = 0.1))
